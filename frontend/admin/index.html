@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Admin - OZHIN</title><link rel='stylesheet' href='/assets/styles.css'></head><body>
+<div class="container"><header><div class="logo"><div class="mark">OZ</div><div style="margin-left:8px"><div style="font-weight:900">OZHIN Admin</div></div></div></header>
+<main><div class="product-card" style="max-width:900px;margin:20px auto"><div id="authArea"><h3>Login</h3><input id="email" class="input" placeholder="admin email" value="admin@ozhin.in"><input id="password" class="input" placeholder="password" value="password123"><div style="margin-top:10px"><button id="loginBtn" class="btn">Login</button></div><div id="authMsg" style="color:var(--muted);margin-top:8px"></div></div><div id="adminArea" style="display:none;margin-top:18px"><h3>Create Product</h3><input id="title" class="input" placeholder="Title"><input id="slug" class="input" placeholder="slug"><textarea id="description" class="input" placeholder="Description"></textarea><input id="price" class="input" placeholder="Price"><input id="inventory" class="input" placeholder="Inventory"><input id="images" class="input" placeholder="Images comma separated"><div style="margin-top:10px"><button id="createBtn" class="btn">Create</button></div><div id="createMsg" style="color:var(--muted);margin-top:10px"></div><h3 style="margin-top:18px">Products</h3><div id="productsList">Loading...</div></div></div></main></div>
+<script>
+  const adminBase = '/admin';
+  function setToken(t){ localStorage.setItem('oz_token', t); }
+  function getToken(){ return localStorage.getItem('oz_token'); }
+  document.getElementById('loginBtn').addEventListener('click', async ()=>{
+    const email=document.getElementById('email').value; const password=document.getElementById('password').value;
+    const res = await fetch(adminBase + '/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password })});
+    const j = await res.json();
+    if(res.ok && j.token){ setToken(j.token); showAdmin(); } else { document.getElementById('authMsg').textContent = j.error || 'Login failed'; }
+  });
+  async function showAdmin(){ document.getElementById('authArea').style.display='none'; document.getElementById('adminArea').style.display='block'; await loadProducts(); }
+  async function loadProducts(){ const res = await fetch(adminBase + '/products', { headers: { 'Authorization':'Bearer ' + getToken() } }); if(!res.ok){ document.getElementById('productsList').textContent='Unauthorized or no products'; return; } const list = await res.json(); document.getElementById('productsList').innerHTML = list.map(p=>`<div style="border-bottom:1px solid #222;padding:8px"><strong>${p.title}</strong> — ₹${p.price} — Inv:${p.inventory}</div>`).join(''); }
+  document.getElementById('createBtn').addEventListener('click', async ()=>{
+    const payload = { title:document.getElementById('title').value, slug:document.getElementById('slug').value, description:document.getElementById('description').value, price:Number(document.getElementById('price').value)||0, inventory:Number(document.getElementById('inventory').value)||0, images:(document.getElementById('images').value||'').split(',').map(s=>s.trim()).filter(Boolean) };
+    const res = await fetch(adminBase + '/products', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()}, body: JSON.stringify(payload) });
+    const j = await res.json(); if(res.ok){ document.getElementById('createMsg').textContent='Created'; await loadProducts(); } else document.getElementById('createMsg').textContent = j.error || 'Error';
+  });
+  if(getToken()){ showAdmin(); }
+</script></body></html>

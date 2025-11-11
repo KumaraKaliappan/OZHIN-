@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Product - OZHIN</title><link rel='stylesheet' href='/assets/styles.css'></head><body>
+<div class="container"><header><div class="logo"><div class="mark">OZ</div><div style="margin-left:8px"><div style="font-weight:800">OZHIN</div></div></div></header>
+<main id="main"></main><footer style="margin-top:40px;color:var(--muted)">© 2025 OZHIN</footer></div>
+<script>
+  function qs(k){ return new URLSearchParams(window.location.search).get(k); }
+  async function load(){ const slug = qs('slug'); if(!slug){ document.getElementById('main').innerHTML = '<div class="product-card">No product specified</div>'; return; } const r = await fetch('/api/products/' + slug); if(!r.ok){ document.getElementById('main').innerHTML = '<div class="product-card">Product not found</div>'; return; } const p = await r.json(); document.getElementById('main').innerHTML = `<div class="product-card"><img src="${(p.images&&p.images[0])||'/images/product_1.jpg'}" style="width:100%;border-radius:8px"><h2>${p.title}</h2><div style="color:var(--muted)">${p.description||''}</div><div class="price">₹${p.price}</div><div style="margin-top:12px"><button class="btn">Buy now</button></div></div>`; }
+  load();
+</script></body></html>
